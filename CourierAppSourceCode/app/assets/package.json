@@ -1,0 +1,23 @@
+{
+  "name": "assets",
+  "version": "1.0.0",
+  "description": "Assets Automation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alopeyk Ltd.",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-consolidate": "^0.2.0",
+    "gulp-iconfont": "^8.0.1",
+    "run-sequence": "^1.2.2",
+    "underscore": "^1.8.3"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "chokidar": "^1.6.1",
+    "gulp-rename": "^1.2.2"
+  }
+}

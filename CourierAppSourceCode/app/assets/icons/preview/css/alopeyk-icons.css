@@ -1,0 +1,197 @@
+@font-face {
+  font-family: "alopeyk-icons";
+  src: url('../../../fonts/alopeyk-icons.eot');
+  src: url('../../../fonts/alopeyk-icons.eot?#iefix') format('eot'),
+    url('../../../fonts/alopeyk-icons.woff2') format('woff2'),
+    url('../../../fonts/alopeyk-icons.woff') format('woff'),
+    url('../../../fonts/alopeyk-icons.ttf') format('truetype'),
+    url('../../../fonts/alopeyk-icons.svg#alopeyk-icons') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.alopeyk-icons-arrow-down:before,
+.alopeyk-icons-arrow-left:before,
+.alopeyk-icons-arrow-right:before,
+.alopeyk-icons-arrow-thick-down:before,
+.alopeyk-icons-arrow-thick-left:before,
+.alopeyk-icons-arrow-thick-right:before,
+.alopeyk-icons-arrow-thick-up:before,
+.alopeyk-icons-arrow-trailed-down:before,
+.alopeyk-icons-arrow-trailed-left:before,
+.alopeyk-icons-arrow-trailed-right:before,
+.alopeyk-icons-arrow-trailed-up:before,
+.alopeyk-icons-arrow-up:before,
+.alopeyk-icons-avatar:before,
+.alopeyk-icons-badge:before,
+.alopeyk-icons-bell:before,
+.alopeyk-icons-bike:before,
+.alopeyk-icons-box:before,
+.alopeyk-icons-calendar:before,
+.alopeyk-icons-camera:before,
+.alopeyk-icons-card-rotated:before,
+.alopeyk-icons-card:before,
+.alopeyk-icons-cash:before,
+.alopeyk-icons-chart-rotated:before,
+.alopeyk-icons-chart:before,
+.alopeyk-icons-check:before,
+.alopeyk-icons-checklist:before,
+.alopeyk-icons-clock:before,
+.alopeyk-icons-coins:before,
+.alopeyk-icons-cross-circled:before,
+.alopeyk-icons-cross-narrow:before,
+.alopeyk-icons-cross:before,
+.alopeyk-icons-delivery-bike:before,
+.alopeyk-icons-delivery-pickup:before,
+.alopeyk-icons-delivery-taxi:before,
+.alopeyk-icons-discount:before,
+.alopeyk-icons-dot:before,
+.alopeyk-icons-dots:before,
+.alopeyk-icons-email:before,
+.alopeyk-icons-exchange:before,
+.alopeyk-icons-exit:before,
+.alopeyk-icons-finger:before,
+.alopeyk-icons-flag:before,
+.alopeyk-icons-gift-card:before,
+.alopeyk-icons-gift:before,
+.alopeyk-icons-headset:before,
+.alopeyk-icons-helmets:before,
+.alopeyk-icons-hour:before,
+.alopeyk-icons-hourglass:before,
+.alopeyk-icons-info:before,
+.alopeyk-icons-lines:before,
+.alopeyk-icons-list-bulleted:before,
+.alopeyk-icons-list:before,
+.alopeyk-icons-loop:before,
+.alopeyk-icons-magnifier:before,
+.alopeyk-icons-marker-doubled:before,
+.alopeyk-icons-marker-filled:before,
+.alopeyk-icons-marker-nulled:before,
+.alopeyk-icons-marker-stared:before,
+.alopeyk-icons-marker:before,
+.alopeyk-icons-medal:before,
+.alopeyk-icons-message-filled:before,
+.alopeyk-icons-message:before,
+.alopeyk-icons-mobile:before,
+.alopeyk-icons-money:before,
+.alopeyk-icons-move:before,
+.alopeyk-icons-network:before,
+.alopeyk-icons-pencil:before,
+.alopeyk-icons-person:before,
+.alopeyk-icons-phone-ringing:before,
+.alopeyk-icons-phone:before,
+.alopeyk-icons-plus:before,
+.alopeyk-icons-pocket:before,
+.alopeyk-icons-pointer-reversed:before,
+.alopeyk-icons-pointer:before,
+.alopeyk-icons-return-back:before,
+.alopeyk-icons-return-circled:before,
+.alopeyk-icons-return:before,
+.alopeyk-icons-road:before,
+.alopeyk-icons-star-empty:before,
+.alopeyk-icons-star-half:before,
+.alopeyk-icons-star-rounded-empty:before,
+.alopeyk-icons-star-rounded-half:before,
+.alopeyk-icons-star-rounded:before,
+.alopeyk-icons-star:before,
+.alopeyk-icons-tag:before,
+.alopeyk-icons-taxi-bike:before,
+.alopeyk-icons-telegram:before {
+  font-family: "alopeyk-icons";
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  text-decoration: inherit;
+}
+
+.alopeyk-icons-arrow-down:before { content: "\EA01" }
+.alopeyk-icons-arrow-left:before { content: "\EA02" }
+.alopeyk-icons-arrow-right:before { content: "\EA03" }
+.alopeyk-icons-arrow-thick-down:before { content: "\EA04" }
+.alopeyk-icons-arrow-thick-left:before { content: "\EA05" }
+.alopeyk-icons-arrow-thick-right:before { content: "\EA06" }
+.alopeyk-icons-arrow-thick-up:before { content: "\EA07" }
+.alopeyk-icons-arrow-trailed-down:before { content: "\EA08" }
+.alopeyk-icons-arrow-trailed-left:before { content: "\EA09" }
+.alopeyk-icons-arrow-trailed-right:before { content: "\EA0A" }
+.alopeyk-icons-arrow-trailed-up:before { content: "\EA0B" }
+.alopeyk-icons-arrow-up:before { content: "\EA0C" }
+.alopeyk-icons-avatar:before { content: "\EA0D" }
+.alopeyk-icons-badge:before { content: "\EA0E" }
+.alopeyk-icons-bell:before { content: "\EA0F" }
+.alopeyk-icons-bike:before { content: "\EA10" }
+.alopeyk-icons-box:before { content: "\EA11" }
+.alopeyk-icons-calendar:before { content: "\EA12" }
+.alopeyk-icons-camera:before { content: "\EA13" }
+.alopeyk-icons-card-rotated:before { content: "\EA14" }
+.alopeyk-icons-card:before { content: "\EA15" }
+.alopeyk-icons-cash:before { content: "\EA16" }
+.alopeyk-icons-chart-rotated:before { content: "\EA17" }
+.alopeyk-icons-chart:before { content: "\EA18" }
+.alopeyk-icons-check:before { content: "\EA19" }
+.alopeyk-icons-checklist:before { content: "\EA1A" }
+.alopeyk-icons-clock:before { content: "\EA1B" }
+.alopeyk-icons-coins:before { content: "\EA1C" }
+.alopeyk-icons-cross-circled:before { content: "\EA1D" }
+.alopeyk-icons-cross-narrow:before { content: "\EA1E" }
+.alopeyk-icons-cross:before { content: "\EA1F" }
+.alopeyk-icons-delivery-bike:before { content: "\EA20" }
+.alopeyk-icons-delivery-pickup:before { content: "\EA21" }
+.alopeyk-icons-delivery-taxi:before { content: "\EA22" }
+.alopeyk-icons-discount:before { content: "\EA23" }
+.alopeyk-icons-dot:before { content: "\EA24" }
+.alopeyk-icons-dots:before { content: "\EA25" }
+.alopeyk-icons-email:before { content: "\EA26" }
+.alopeyk-icons-exchange:before { content: "\EA27" }
+.alopeyk-icons-exit:before { content: "\EA28" }
+.alopeyk-icons-finger:before { content: "\EA29" }
+.alopeyk-icons-flag:before { content: "\EA2A" }
+.alopeyk-icons-gift-card:before { content: "\EA2B" }
+.alopeyk-icons-gift:before { content: "\EA2C" }
+.alopeyk-icons-headset:before { content: "\EA2D" }
+.alopeyk-icons-helmets:before { content: "\EA2E" }
+.alopeyk-icons-hour:before { content: "\EA2F" }
+.alopeyk-icons-hourglass:before { content: "\EA30" }
+.alopeyk-icons-info:before { content: "\EA31" }
+.alopeyk-icons-lines:before { content: "\EA32" }
+.alopeyk-icons-list-bulleted:before { content: "\EA33" }
+.alopeyk-icons-list:before { content: "\EA34" }
+.alopeyk-icons-loop:before { content: "\EA35" }
+.alopeyk-icons-magnifier:before { content: "\EA36" }
+.alopeyk-icons-marker-doubled:before { content: "\EA37" }
+.alopeyk-icons-marker-filled:before { content: "\EA38" }
+.alopeyk-icons-marker-nulled:before { content: "\EA39" }
+.alopeyk-icons-marker-stared:before { content: "\EA3A" }
+.alopeyk-icons-marker:before { content: "\EA3B" }
+.alopeyk-icons-medal:before { content: "\EA3C" }
+.alopeyk-icons-message-filled:before { content: "\EA3D" }
+.alopeyk-icons-message:before { content: "\EA3E" }
+.alopeyk-icons-mobile:before { content: "\EA3F" }
+.alopeyk-icons-money:before { content: "\EA40" }
+.alopeyk-icons-move:before { content: "\EA41" }
+.alopeyk-icons-network:before { content: "\EA42" }
+.alopeyk-icons-pencil:before { content: "\EA43" }
+.alopeyk-icons-person:before { content: "\EA44" }
+.alopeyk-icons-phone-ringing:before { content: "\EA45" }
+.alopeyk-icons-phone:before { content: "\EA46" }
+.alopeyk-icons-plus:before { content: "\EA47" }
+.alopeyk-icons-pocket:before { content: "\EA48" }
+.alopeyk-icons-pointer-reversed:before { content: "\EA49" }
+.alopeyk-icons-pointer:before { content: "\EA4A" }
+.alopeyk-icons-return-back:before { content: "\EA4B" }
+.alopeyk-icons-return-circled:before { content: "\EA4C" }
+.alopeyk-icons-return:before { content: "\EA4D" }
+.alopeyk-icons-road:before { content: "\EA4E" }
+.alopeyk-icons-star-empty:before { content: "\EA4F" }
+.alopeyk-icons-star-half:before { content: "\EA50" }
+.alopeyk-icons-star-rounded-empty:before { content: "\EA51" }
+.alopeyk-icons-star-rounded-half:before { content: "\EA52" }
+.alopeyk-icons-star-rounded:before { content: "\EA53" }
+.alopeyk-icons-star:before { content: "\EA54" }
+.alopeyk-icons-tag:before { content: "\EA55" }
+.alopeyk-icons-taxi-bike:before { content: "\EA56" }
+.alopeyk-icons-telegram:before { content: "\EA57" }

@@ -1,0 +1,4 @@
+<resources>
+    <string moduleConfig="true" name="reactNativeCodePush_androidDeploymentKey">npm install --save react-native-code-push</string>
+    <string name="app_name">AlopeykCourier</string>
+</resources>
