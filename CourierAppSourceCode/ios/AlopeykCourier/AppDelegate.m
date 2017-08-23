@@ -8,7 +8,7 @@
  */
 
 #import "AppDelegate.h"
-#import <CodePush/CodePush.h>
+//#import <CodePush/CodePush.h>
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -20,11 +20,11 @@
   NSURL *jsCodeLocation;
 
   
-#ifdef DEBUG
+//#ifdef DEBUG
     jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-#else
-    jsCodeLocation = [CodePush bundleURL];
-#endif
+//#else
+//    jsCodeLocation = [CodePush bundleURL];
+//#endif
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"AlopeykCourier"
