@@ -1,3 +1,6 @@
-import { NativeModules }	from 'react-native';
+import { NativeModules, Platform }	from 'react-native';
 
-module.exports = NativeModules.Unlocker;
+if(Platform.OS = 'android')
+{
+	module.exports = NativeModules.Unlocker;
+}

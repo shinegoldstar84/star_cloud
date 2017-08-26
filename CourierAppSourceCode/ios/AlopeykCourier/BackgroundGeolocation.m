@@ -18,7 +18,34 @@
 static NSString *const TS_LOCATION_MANAGER_TAG = @"TSLocationManager";
 static NSString *const EVENT_LOCATIONCHANGE     = @"location";
 static NSString *const EVENT_ERROR              = @"error";
-static int TIMER_INTERVAL = 3;
+static NSString *const KEY_GEO_TIMER_INTERVAL = @"bgGeoInterval";
+
+// TODO: must implement here!
+//BackgroundGeolocation.configure({
+//desiredAccuracy: 0,
+//stationaryRadius: 50,
+//distanceFilter: 50,
+//disableElasticity: true, // <-- [iOS] Default is 'false'.  Set true to disable speed-based distanceFilter elasticity
+//locationUpdateInterval: 5000,
+//minimumActivityRecognitionConfidence: 80,   // 0-100%.  Minimum activity-confidence for a state-change
+//fastestLocationUpdateInterval: 5000,
+//activityRecognitionInterval: 10000,
+//stopTimeout: 0,
+//activityType: 'AutomotiveNavigation',
+//  
+//  // Application config
+//debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
+//forceReloadOnLocationChange: false,  // <-- [Android] If the user closes the app **while location-tracking is started** , reboot app when a new location is recorded (WARNING: possibly distruptive to user)
+//forceReloadOnMotionChange: false,    // <-- [Android] If the user closes the app **while location-tracking is started** , reboot app when device changes stationary-state (stationary->moving or vice-versa) --WARNING: possibly distruptive to user)
+//forceReloadOnGeofence: false,        // <-- [Android] If the user closes the app **while location-tracking is started** , reboot app when a geofence crossing occurs --WARNING: possibly distruptive to user)
+//stopOnTerminate: false,              // <-- [Android] Allow the background-service to run headless when user closes the app.
+//startOnBoot: true,                   // <-- [Android] Auto start background-service in headless mode when device is powered-up.
+//}, function(state) {
+//  console.log("Background Geolocation configure successed.  Current state: ", state.enabled);
+//}, function(error) {
+//  console.warn("Background Geolocation failed to configure");
+//}
+//                                );
 
 static BackgroundGeolocation *_instance = nil;
 
@@ -101,20 +128,52 @@ RCT_EXPORT_MODULE();
  */
 RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
 {
-  if (isConfigured) {
-    [self setConfig:config success:success failure:failure];
-    return;
-  }
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+  [preferences setObject:[config objectForKey:@"url"] forKey:@"url"];
+  [preferences setObject:[config objectForKey:KEY_GEO_TIMER_INTERVAL] forKey:KEY_GEO_TIMER_INTERVAL];
+  [preferences setObject:[config objectForKey:@"version"] forKey:@"version"];
+  [preferences setObject:[config objectForKey:@"token"] forKey:@"token"];
+  [preferences setObject:[NSNumber numberWithBool:NO] forKey:@"backgroundMode"];
+  [preferences synchronize];
   
-  dispatch_async(dispatch_get_main_queue(), ^{
-    NSDictionary *state = [locationManager configure:config];
-    isConfigured = (state != nil);
-    if (state != nil) {
-      success(@[state]);
-    } else {
-      failure(@[]);
-    }
-  });
+  success(@{@"enabled":[NSNumber numberWithBool:YES]});
+  
+//  if (isConfigured) {
+//    [self setConfig:config success:success failure:failure];
+//    return;
+//  }
+//  
+//  dispatch_async(dispatch_get_main_queue(), ^{
+//    NSDictionary *state = [locationManager configure:config];
+//    isConfigured = (state != nil);
+//    if (state != nil) {
+//      success(@[state]);
+//    } else {
+//      failure(@[]);
+//    }
+//  });
+}
+
+RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success)
+{
+  [self configure:config success:success failure:nil];
+}
+
+//RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
+//{
+//  NSDictionary *state = [locationManager setConfig:config];
+//  success(@[state]);
+//}
+
+// configuration setting change process
+RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config)
+{
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+  for(NSString* key in [config allKeys])
+  {
+    [preferences setObject:[config objectForKey:key] forKey:key];
+  }
+  [preferences synchronize];
 }
 
 RCT_EXPORT_METHOD(addListener:(NSString*)event)
@@ -163,13 +222,6 @@ RCT_EXPORT_METHOD(removeAllListeners)
   [locationManager removeListeners];
 }
 
-
-RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
-{
-  NSDictionary *state = [locationManager setConfig:config];
-  success(@[state]);
-}
-
 -(NSDictionary*)getState
 {
   return [locationManager getState];
@@ -197,8 +249,15 @@ RCT_EXPORT_METHOD(start:(RCTResponseSenderBlock)success)
   
   isMonitoring = YES;
   
-  timer = [NSTimer timerWithTimeInterval:TIMER_INTERVAL repeats:YES block:onTimer];
+  // set default interval
+  int nTimerInterval = 3;
   
+  // get configured value and convert into seconds value
+  id interval = [[NSUserDefaults standardUserDefaults] objectForKey:KEY_GEO_TIMER_INTERVAL];
+  if(interval != nil) nTimerInterval = (int)([interval integerValue] / 1000);
+  
+  // create timer object and insert into runloop to execute
+  timer = [NSTimer timerWithTimeInterval:nTimerInterval repeats:YES block:onTimer];
   [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
 }
 
@@ -215,7 +274,6 @@ RCT_EXPORT_METHOD(stop)
   [locationManager stop];
   isMonitoring = NO;
   
-//  [[NSRunLoop mainRunLoop] ];
   [timer invalidate];
   timer = nil;
 }

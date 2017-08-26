@@ -12,7 +12,7 @@
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
-#import <React/RCTI18nUtil.h>
+//#import <React/RCTI18nUtil.h>
 #import "BackgroundGeolocation.h"
 
 #define RTL_SUPPORT YES
@@ -29,11 +29,11 @@
 //#endif
   
   /* support RTL for Persian */
-#ifdef RTL_SUPPORT
-  RCTI18nUtil *shardI18nUtil = [RCTI18nUtil sharedInstance];
-  [shardI18nUtil allowRTL:YES];
-  [shardI18nUtil forceRTL:YES];
-#endif
+//#ifdef RTL_SUPPORT
+//  RCTI18nUtil *shardI18nUtil = [RCTI18nUtil sharedInstance];
+//  [shardI18nUtil allowRTL:YES];
+//  [shardI18nUtil forceRTL:YES];
+//#endif
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"AlopeykCourier"

@@ -1,4 +1,3 @@
-import BackgroundGeolocation 	from 'react-native-background-geolocation-android';
 import G 						from './G';
 import BaseService				from './BaseService';
 import { connectivityService }	from './ConnectivityService';
@@ -7,7 +6,8 @@ import {
 	NetInfo,
 	DeviceEventEmitter,
 	Alert,
-	Linking
+	Linking,
+	Platform
 }								from 'react-native';
 import BgGeo  					from './BgGeo';
 import { showAlert }			from './Helpers';
@@ -63,7 +63,9 @@ class BGLocation extends BaseService
 						{
 							this.dispatch( this.actionTypes.CHANGE_STATUS, false );
 							this.forceStop();
-							Alert.alert(
+							if(Platform.OS = 'android')
+							{
+								Alert.alert(
 								'هشدار',
 								'لطفا google play services را بروزرسانی کنید', 
 								[
@@ -74,8 +76,9 @@ class BGLocation extends BaseService
 									{
 										text: 'انصراف',
 									}
-								]
-							)
+								])
+							};
+							
 						});
 			});
 		})

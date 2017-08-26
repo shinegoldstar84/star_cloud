@@ -64,6 +64,7 @@ NSMutableData *_responseData;
     if([[dicResponse objectForKey:@"response"] isEqualToString:@"success"])
     {
       // TODO: must wake up and bring to front
+      
     }
     NSLog(@"server response received!");
   }];
@@ -83,7 +84,7 @@ NSMutableData *_responseData;
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:BackgroundSessionConfigurationID];
     configuration.sessionSendsLaunchEvents = YES;
     configuration.discretionary = YES;
-    session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+    session = [NSURLSession sessionWithConfiguration:configuration];
   });
   return session;
 }

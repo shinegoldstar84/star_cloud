@@ -1,4 +1,6 @@
-import { NativeModules }	from 'react-native';
+import { NativeModules, Platform }	from 'react-native';
 
-
-module.exports = NativeModules.BringToFront;
+if(Platform.OS == 'android')
+{
+	module.exports = NativeModules.BringToFront;	
+}
