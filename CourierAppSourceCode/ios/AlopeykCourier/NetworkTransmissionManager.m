@@ -9,7 +9,16 @@
 #import "NetworkTransmissionManager.h"
 #import "AppDelegate.h"
 
+#if __has_include("RCTEventDispatcher.h")
+#import "RCTEventDispatcher.h"
+#else
+#import <React/RCTEventDispatcher.h>
+#endif
+
 static NSString *BackgroundSessionConfigurationID = @"SimpleBackgroundSessionConfiguration";
+
+static const NSString* POSITION_HTTP_RESPONSE = @"positionHttpResponse";
+static const NSString* POSITION_HTTP_REQUEST_FAIL = @"positionHttpRequestFail";
 
 static NetworkTransmissionManager* _instance = nil;
 
@@ -22,7 +31,12 @@ static NetworkTransmissionManager* _instance = nil;
 
 @implementation NetworkTransmissionManager
 
+@synthesize bridge = _bridge;
+
 NSMutableData *_responseData;
+BOOL hasListeners;
+
+RCT_EXPORT_MODULE();
 
 // singleton method
 +(NetworkTransmissionManager *)sharedInstance
@@ -32,9 +46,26 @@ NSMutableData *_responseData;
   return _instance;
 }
 
+-(instancetype)init
+{
+  if(self = [super init])
+  {
+//    AppDelegate* delegate = (AppDelegate* )[[UIApplication sharedApplication] delegate];
+//    [self setBridge:[delegate rootBridge]];
+  }
+  
+  return self;
+}
+
+- (NSArray<NSString *> *)supportedEvents {
+  return @[
+           POSITION_HTTP_RESPONSE,
+           POSITION_HTTP_REQUEST_FAIL
+           ];
+}
 
 // send location info for get response
--(void) start:(NSString*)url body:(NSData*) body
+RCT_EXPORT_METHOD(start:(NSString*)url body:(NSData*) body)
 {
   NSURLSession *session = [self backgroundSession];
   NSURL *requestURL = [NSURL URLWithString:url];
@@ -44,33 +75,34 @@ NSMutableData *_responseData;
   
   [request setHTTPMethod:@"POST"];
   
-  // TODO: must resolve token value!!!
-  NSString *strToken = @"";
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+  NSString *strToken = [preferences objectForKey:@"token"];
   NSString* strAuth = [NSString stringWithFormat:@"%@ %@", @"Bearer", strToken];
   [request addValue:strAuth forHTTPHeaderField:@"Authorization"];
   
   [request setHTTPBody:body];
   
-  NSURLSessionDataTask *task = [session dataTaskWithRequest:request
+  // comment for local test
+  /*NSURLSessionDataTask *task = [session dataTaskWithRequest:request
                                     completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
   {
     if (error) {
-      NSLog(@"send location info failed!");
+      [self sendEvent:(NSString *)POSITION_HTTP_REQUEST_FAIL body:nil];
       return;
     }
     
     // Parse response/data and determine whether new content was available
     NSDictionary *dicResponse = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:_responseData options:0 error:nil];
-    if([[dicResponse objectForKey:@"response"] isEqualToString:@"success"])
-    {
-      // TODO: must wake up and bring to front
-      
-    }
+    [self sendEvent:(NSString *)POSITION_HTTP_RESPONSE body:dicResponse];
     NSLog(@"server response received!");
   }];
   
   // Start the task
-  [task resume];
+  [task resume];*/  
+  
+  [self sendEventWithName:(NSString *)POSITION_HTTP_RESPONSE body:@{@"orderid":[NSNumber numberWithInteger:12345]}];
+
+  NSLog(@"send location info finished!");
 }
 
 - (NSURLSession *)backgroundSession
@@ -88,4 +120,22 @@ NSMutableData *_responseData;
   });
   return session;
 }
+
+// Will be called when this module's first listener is added.
+-(void)startObserving {
+  hasListeners = YES;
+  
+}
+
+// Will be called when this module's last listener is removed, or on dealloc.
+-(void)stopObserving {
+  hasListeners = NO;
+}
+
+// Will be used for setting instance object as JS created object. 
+RCT_EXPORT_METHOD(connectWithNative)
+{
+  _instance = self;
+}
+
 @end

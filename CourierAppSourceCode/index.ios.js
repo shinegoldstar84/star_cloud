@@ -3,121 +3,148 @@ import React, { PropTypes, Component } from 'react';
 
 import {
   View,
-  StatusBar,
-  AppRegistry,
   NetInfo,
   I18nManager,
   Text,
   StyleSheet,
-  Button
+  Button,
+  AppRegistry, 
+  NativeModules,
+  NativeEventEmitter
 } from 'react-native';
 
-// import { Provider }       from 'react-redux';
-// import AppWithNavigationState   from './app/navigators/AppNavigator';
-// import { store }        from './app/store';
-// import { bgLocation }     from './app/lib/BGLocation';
-import { showAlert }      from './app/lib/Helpers';
-import Config           from 'react-native-config';
-// import { GetColor }             from './app/custom/Utils/color';
-import codePush                 from "react-native-code-push";
-import BackgroundGeolocation from './app/lib_ios/backgroundgeolocation'
+import { showAlert }    from './app/lib/Helpers';
+import codePush         from "react-native-code-push";
+import BackgroundGeolocation from './app/lib_ios/Backgroundgeolocation'
+import Notify           from './app/lib_ios/Notify'
+// import NetworkMonitor   from './app/lib_ios/NetworkMonitor'
 
-export default class AlopeykCourier extends Component { 
+var NetworkTransmissionManager = NativeModules.NetworkTransmissionManager;
+const myNativeExt = new NativeEventEmitter(NetworkTransmissionManager);
 
 
+export default class AlopeykCourier extends Component {
+  
   constructor(props) {
     super(props);
     I18nManager.forceRTL(true);
     
-    // this.state = {online: false, connected: false, nTimerID: 0};        
+    this.state = {online: false, connected: true, nTimerID: 0};        
   }
 
   componentWillMount() 
-  {
-    NetInfo.isConnected.addEventListener( 'change', ( isConnected ) =>
-    {
-      if ( !isConnected )
+  { 
+    /* Check online status */
+      NetInfo.isConnected.fetch().then(isConnected => {
+        this.setState(previousState => {
+          return ({online: isConnected});
+        });        
+      });
+
+      /*  monitoring online status change */
+      NetInfo.isConnected.addEventListener( 'change', ( isConnected ) =>
       {
-        showAlert( 'عدم دسترسی به اینترنت. لطفا اینترنت دستگاه خود را روشن نمایید.' );
+        this.setState(previousState => {
+          return ({online: isConnected});
+        });   
+
+        if ( !isConnected )
+        {
+          showAlert( 'Network connection failed!' );
+        }
+      });
+
+      NetworkTransmissionManager.connectWithNative(); // must call this before add listener to notifying native for singleton object setting
+      this.listener = myNativeExt.addListener('positionHttpResponse', this.onBgLocationResponse.bind(this));
+  }
+
+  _onPressButton() 
+  {
+    // reset connected state
+    this.setState(previousState => {
+        return ({ connected: !previousState.connected});
+      });
+
+    console.log('button state: ', this.state.connected);
+
+    if(this.state.connected) 
+    {      
+      BackgroundGeolocation.start(function(state) {
+        if(state.enabled)
+        {
+          console.log('backgroundgeolocation started normally.');
+          
+          //Fetch current position
+          // BackgroundGeolocation.getCurrentPosition({}, function(location) {
+          //   console.log('- [js] location data received current position: ', location);
+          // }, function(error) {
+          //   console.log('location data receive error: ', error);
+          // });
+        }              
+      });           
+    }
+    else
+    {
+      BackgroundGeolocation.stop();
+    }    
+  }    
+
+  /**
+   * handles the BGLocation Http Response.
+   * @returns Promise
+   */
+  onBgLocationResponse( response )
+  {
+    console.log('received the event message!!!');
+
+    return new Promise( resolve =>
+    {
+      if ( response )
+      {
+        console.log('received response', response);
+        Notify.showNotification({id: 12345, title:'Order', content:'New order came'});
+
+      //   try
+      //   {
+          
+      //     const { object } = JSON.parse( response );
+      //     if ( object )
+      //     {
+            
+      //     }
+      //     resolve();
+      //   }
+      //   catch( e )
+      //   {
+      //     console.log( 'JSONPARSE: ', e );
+      //   }
       }
     });
-
-    // BackHandler.addEventListener('hardwareBackPress', () =>
-    // {
-    //   BackHandler.exitApp();
-    //   return true;
-    // });
   }
 
-//   /*  for test 'service ' */ 
-//   _onPressButton() 
-//   {
-//     // reset connected state
-//     this.setState(previousState => {
-//         return ({ connected: !previousState.connected});
-//       });
+  componentWillUnmount() {
+    this.listener && this.listener.remove();
+    this.listener = null;
+  }
 
-//     if(this.state.connected) 
-//     {      
-//       BackgroundGeolocation.start(function(state) {
-//         if(state.enabled)
-//         {
-//           console.log('backgroundgeolocation started normally.');
-          
-//           // Fetch current position
-//           BackgroundGeolocation.getCurrentPosition({}, function(location) {
-//             console.log('- [js] BackgroundGeolocation received current position: ', location);
-//           }, function(error) {
-//             console.log('BackgroundGeolocation receive error: ', error);
-//           });
-//         }              
-//       });
-
-//       // let nTimeInterval = 2000;   
-//       // let nID = setInterval(() => {
-//       //    // Fetch current position
-//       //     BackgroundGeolocation.getCurrentPosition({}, function(location) {
-//       //       console.log('- [js] BackgroundGeolocation received current position: ', location); //JSON.stringify(location));
-//       //     }, function(error){
-//       //       console.log('get location info failed -', error);
-//       //     });
-//       //   }, nTimeInterval);
-//       // this.setState({nTimerID: nID});      
-//     }
-//     else
-//     {
-//       // clearInterval(this.state.nTimerID);
-//       BackgroundGeolocation.stop();
-//     }    
-//   }       
-
-//   render() 
-//   {
-//     let strTitle = this.state.connected ? 'Start' : 'Stop';
-//     let isDiabled = !this.state.connected;
-//     return (      
-//         <View style={styles.container}> 
-//           <Button
-//             onPress={() => this._onPressButton()}
-//             title={strTitle}
-//             color="#841584"
-//             accessibilityLabel="Learn more about this purple button"
-//           />
-//         </View>  
-//     );
-//   }
-// }
   render() 
   {
-      render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          This is test page for iOS plugin!
-        </Text>
-      </View>
+    let strTitle = this.state.connected ? 'Start' : 'Stop';
+    return (      
+        <View style={styles.container}> 
+          <Text style={styles.welcome}>
+            Please press button for test!
+          </Text>
+          <Button
+            onPress={() => this._onPressButton()}
+            title={strTitle}
+            color="#841584"
+            accessibilityLabel="localhost test button"
+          />
+        </View>  
     );
   }
+}  
 
 const styles = StyleSheet.create({
   container: {
@@ -130,23 +157,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center',
     margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-  mainpart: {
-    position: 'absolute',
-    // left: 0,
-    right: 0,
-    bottom: 0,
-    top: 0,
-    flex: 1,
-    justifyContent: 'center',
-    // zIndex: 1, 
-    backgroundColor: 'transparent',
-    alignItems: 'flex-end'
   }
 });
 
@@ -162,7 +172,7 @@ let codePushOptions =
 AlopeykCourier = codePush( codePushOptions )( AlopeykCourier );
 
 /*=====  End of CodePush-ify the App  ======*/
-AppRegistry.registerHeadlessTask('HeadlessTask', () => require('./app/lib/HeadlessTask'));
+// AppRegistry.registerHeadlessTask('HeadlessTask', () => require('./app/lib/HeadlessTask'));
 AppRegistry.registerComponent('AlopeykCourier', () => AlopeykCourier);
 
 

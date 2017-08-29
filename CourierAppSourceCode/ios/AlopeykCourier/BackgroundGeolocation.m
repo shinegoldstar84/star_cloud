@@ -18,34 +18,8 @@
 static NSString *const TS_LOCATION_MANAGER_TAG = @"TSLocationManager";
 static NSString *const EVENT_LOCATIONCHANGE     = @"location";
 static NSString *const EVENT_ERROR              = @"error";
-static NSString *const KEY_GEO_TIMER_INTERVAL = @"bgGeoInterval";
 
-// TODO: must implement here!
-//BackgroundGeolocation.configure({
-//desiredAccuracy: 0,
-//stationaryRadius: 50,
-//distanceFilter: 50,
-//disableElasticity: true, // <-- [iOS] Default is 'false'.  Set true to disable speed-based distanceFilter elasticity
-//locationUpdateInterval: 5000,
-//minimumActivityRecognitionConfidence: 80,   // 0-100%.  Minimum activity-confidence for a state-change
-//fastestLocationUpdateInterval: 5000,
-//activityRecognitionInterval: 10000,
-//stopTimeout: 0,
-//activityType: 'AutomotiveNavigation',
-//  
-//  // Application config
-//debug: true, // <-- enable this hear sounds for background-geolocation life-cycle.
-//forceReloadOnLocationChange: false,  // <-- [Android] If the user closes the app **while location-tracking is started** , reboot app when a new location is recorded (WARNING: possibly distruptive to user)
-//forceReloadOnMotionChange: false,    // <-- [Android] If the user closes the app **while location-tracking is started** , reboot app when device changes stationary-state (stationary->moving or vice-versa) --WARNING: possibly distruptive to user)
-//forceReloadOnGeofence: false,        // <-- [Android] If the user closes the app **while location-tracking is started** , reboot app when a geofence crossing occurs --WARNING: possibly distruptive to user)
-//stopOnTerminate: false,              // <-- [Android] Allow the background-service to run headless when user closes the app.
-//startOnBoot: true,                   // <-- [Android] Auto start background-service in headless mode when device is powered-up.
-//}, function(state) {
-//  console.log("Background Geolocation configure successed.  Current state: ", state.enabled);
-//}, function(error) {
-//  console.warn("Background Geolocation failed to configure");
-//}
-//                                );
+static NSString *const KEY_GEO_TIMER_INTERVAL = @"bgGeoInterval";
 
 static BackgroundGeolocation *_instance = nil;
 
@@ -88,10 +62,10 @@ RCT_EXPORT_MODULE();
     
     // Build event-listener blocks
     onLocation = ^void(TSLocation *location) {
-      [me sendEvent:EVENT_LOCATIONCHANGE body:[location toDictionary]];
-      NSLog(@"Location changed:");
-      
-      [me postPosition:location];
+//      [me sendEvent:EVENT_LOCATIONCHANGE body:[location toDictionary]];
+//      NSLog(@"Location changed:");
+//      
+//      [me postPosition:location];
     };
     
     onLocationError = ^void(NSError *error) {
@@ -108,6 +82,10 @@ RCT_EXPORT_MODULE();
     // TSLocationManager instance
     locationManager = [TSLocationManager sharedInstance];
     
+    // for test only code
+    [self locationManagerDefaultSetting];
+    isConfigured = YES;
+    
     // Provide reference to rootViewController for #emailLog method.
     UIViewController *root = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
     locationManager.viewController = root;
@@ -123,20 +101,45 @@ RCT_EXPORT_MODULE();
            ];
 }
 
+/*  hard setting for default setting of location manager */
+-(void)locationManagerDefaultSetting
+{
+  NSMutableDictionary* dicSetting = [NSMutableDictionary new];
+  [dicSetting setObject:@0 forKey:@"desiredAccuracy"];
+  [dicSetting setObject:@50 forKey:@"stationaryRadius"];
+  [dicSetting setObject:@50 forKey:@"distanceFilter"];
+  [dicSetting setObject:@YES forKey:@"disableElasticity"];
+  [dicSetting setObject:@3000 forKey:@"locationUpdateInterval"];
+  [dicSetting setObject:@80 forKey:@"minimumActivityRecognitionConfidence"];
+  [dicSetting setObject:@5000 forKey:@"fastestLocationUpdateInterval"];
+  [dicSetting setObject:@1000 forKey:@"activityRecognitionInterval"];
+  [dicSetting setObject:@0 forKey:@"stopTimeout"];
+  [dicSetting setObject:@"AutomotiveNavigation" forKey:@"activityType"];
+  [dicSetting setObject:@YES forKey:@"debug"];
+  [dicSetting setObject:@NO forKey:@"forceReloadOnLocationChange"];
+  [dicSetting setObject:@NO forKey:@"forceReloadOnMotionChange"];
+  [dicSetting setObject:@NO forKey:@"forceReloadOnGeofence"];
+  [dicSetting setObject:@NO forKey:@"stopOnTerminate"];
+  [dicSetting setObject:@YES forKey:@"startOnBoot"];
+  
+  [locationManager configure:dicSetting];
+}
+
 /**
- * configure plugin
+ * configure plugin for interact with previous JS code
  */
 RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
 {
   NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
-  [preferences setObject:[config objectForKey:@"url"] forKey:@"url"];
-  [preferences setObject:[config objectForKey:KEY_GEO_TIMER_INTERVAL] forKey:KEY_GEO_TIMER_INTERVAL];
-  [preferences setObject:[config objectForKey:@"version"] forKey:@"version"];
-  [preferences setObject:[config objectForKey:@"token"] forKey:@"token"];
-  [preferences setObject:[NSNumber numberWithBool:NO] forKey:@"backgroundMode"];
+  
+  for(NSString* key in [config allKeys])
+  {
+    [preferences setObject:[config objectForKey:key] forKey:key];
+  }
+  
   [preferences synchronize];
   
-  success(@{@"enabled":[NSNumber numberWithBool:YES]});
+  success(@[@{@"enabled":@YES}]);
   
 //  if (isConfigured) {
 //    [self setConfig:config success:success failure:failure];
@@ -157,6 +160,7 @@ RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBloc
 RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success)
 {
   [self configure:config success:success failure:nil];
+//  isConfigured = YES;
 }
 
 //RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
@@ -191,9 +195,9 @@ RCT_EXPORT_METHOD(addListener:(NSString*)event)
       // First listener for this event
       [listeners setObject:@(1) forKey:event];
       
-      if ([event isEqualToString:EVENT_LOCATIONCHANGE]) {
-          [locationManager onLocation:onLocation failure:onLocationError];
-      }
+//      if ([event isEqualToString:EVENT_LOCATIONCHANGE]) {
+//          [locationManager onLocation:onLocation failure:onLocationError];
+//      }
     }
   }
 }
@@ -236,7 +240,7 @@ RCT_EXPORT_METHOD(getState:(RCTResponseSenderBlock)callback failure:(RCTResponse
 /**
  * Turn on background geolocation
  */
-RCT_EXPORT_METHOD(start:(RCTResponseSenderBlock)success)
+RCT_EXPORT_METHOD(start:(RCTResponseSenderBlock)success) // failure:(RCTResponseSenderBlock)failure)
 {
   if(!isConfigured || isMonitoring) return;
   
@@ -321,7 +325,7 @@ RCT_EXPORT_METHOD(playSound:(int)soundId)
 {
   NSDictionary* dicLocation = [location toDictionary];
   [[CustomUtils sharedInstance] processLocationInfo:dicLocation];
-  NSLog(@"processed position info: %@", [dicLocation descriptionInStringsFileFormat]);
+//  NSLog(@"processed position info: %@", [dicLocation descriptionInStringsFileFormat]);
 }
 
 -(void) sendEvent:(NSString*)event body:(id)body

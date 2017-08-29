@@ -11,7 +11,10 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NetworkTransmissionManager : NSObject
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+
+@interface NetworkTransmissionManager : RCTEventEmitter<RCTBridgeModule>
 
 -(void) start:(NSString*)url body:(NSData*) body;
 

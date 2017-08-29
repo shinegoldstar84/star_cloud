@@ -8,10 +8,14 @@
  */
 
 #import <UIKit/UIKit.h>
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (nonatomic, strong) UIWindow *window;
 @property (copy) void (^backgroundSessionCompletionHandler)();
+//@property (nonatomic, strong) RCTBridge *rootBridge;
+
 
 @end

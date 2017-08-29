@@ -49,6 +49,8 @@
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
   
+//  _rootBridge = rootView.bridge;
+  
   return YES;
 }
 

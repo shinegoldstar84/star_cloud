@@ -17,9 +17,9 @@
 #define MINIMUM_LONGITUDE_VALUE 49
 #define MAXIMUM_LONGITUDE_VALUE 55
 
-static BOOL CHECK_RANGE_FLAG  = YES;
+static BOOL CHECK_RANGE_FLAG  = NO; // for test
 
-static NSString *downloadURLString = @"http://localhost/";
+//static NSString *downloadURLString = @"http://localhost/";
 
 static CustomUtils* _instance = nil;
 
@@ -82,10 +82,10 @@ static CustomUtils* _instance = nil;
   return result;
 }
 
-// TODO: must modify for get correct url
 -(NSString *)getRequestURL
 {
-  return downloadURLString;
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+  return [preferences objectForKey:@"url"];
 }
 
 -(void)processLocationInfo:(NSDictionary *)location
@@ -94,7 +94,7 @@ static CustomUtils* _instance = nil;
   if(requestBody == nil) return;
   
   NSString *url = [self getRequestURL];
-//  [[NetworkTransmissionManager sharedInstance] start:url body:requestBody];
+  [[NetworkTransmissionManager sharedInstance] start:url body:requestBody];  
 }
 
 

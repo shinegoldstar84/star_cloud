@@ -12,6 +12,7 @@ import { broadcastService }		from './BroadcastService';
 import BringToFront				from './BringToFront';
 import Unlocker					from './Unlocker';
 import Notify 					from './Notify';
+import { Platform }				from 'react-native'
 
 class OrderService extends BaseService
 {
@@ -170,8 +171,11 @@ class OrderService extends BaseService
 	 */
 	orderCancelled()
 	{
-		BringToFront.bringToFront();
-		Unlocker.unlockScreen();
+		if(Platfor.OS == 'android')
+		{
+			BringToFront.bringToFront();
+			Unlocker.unlockScreen();			
+		}
 		Notify.showNotification(
 		{
 			id: 5,

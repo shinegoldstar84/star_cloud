@@ -5,7 +5,7 @@ import Api 						from './Api';
 import BringToFront				from './BringToFront';
 import { Platform }				from 'react-native'
 
-var Unlocker;
+export var Unlocker;
 if(Platform.OS == 'android')
 {
 	Unlocker = require('./Unlocker');

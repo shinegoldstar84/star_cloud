@@ -6,8 +6,7 @@ import {
 	NetInfo,
 	DeviceEventEmitter,
 	Alert,
-	Linking,
-	Platform
+	Linking
 }								from 'react-native';
 import BgGeo  					from './BgGeo';
 import { showAlert }			from './Helpers';
@@ -17,6 +16,7 @@ class BGLocation extends BaseService
 {
 
 	positions = [];
+	currentConfig = false;
 
 	constructor()
 	{
@@ -48,7 +48,8 @@ class BGLocation extends BaseService
 				offline: false,
 				version: G.appVersion.toString(),
 				token: G.jwtToken,
-				bgGeoInterval: G.bgLocateInterval
+				bgGeoInterval: G.bgLocateInterval,
+				adapter: G.bgGeoAdapter
 			}, () =>
 			{
 				BgGeo.start()
@@ -63,9 +64,7 @@ class BGLocation extends BaseService
 						{
 							this.dispatch( this.actionTypes.CHANGE_STATUS, false );
 							this.forceStop();
-							if(Platform.OS = 'android')
-							{
-								Alert.alert(
+							Alert.alert(
 								'هشدار',
 								'لطفا google play services را بروزرسانی کنید', 
 								[
@@ -76,9 +75,8 @@ class BGLocation extends BaseService
 									{
 										text: 'انصراف',
 									}
-								])
-							};
-							
+								]
+							)
 						});
 			});
 		})
@@ -90,30 +88,30 @@ class BGLocation extends BaseService
 		{
 			if ( data && data.latitude && data.longitude )
 			{
-				if ( this.currentPosition && this.currentPosition.coords )
-				{
-					this.positions.push(
-					{
-						lat: data.latitude,
-						lng: data.longitude
-					});
-					if ( this.positions.length >= 50 )
-					{
-						this.positions = [];
-						const distance = this.getDistanceFromLatLonInKm( this.currentPosition.coords.latitude, this.currentPosition.coords.longitude, data.latitude, data.longitude );
-						if ( distance >= 0.008 )
-						{
-							let locationData = {
-								latlng : data.latitude + ',' + data.longitude
-							};
-							Api.get( '/locations', locationData )
-								.then( ({ result }) =>
-								{
-									this.dispatch( this.actionTypes.CURRENT_ADDRESS_FETCHED, result );
-								})
-						}
-					}
-				}
+				// if ( this.currentPosition && this.currentPosition.coords )
+				// {
+				// 	this.positions.push(
+				// 	{
+				// 		lat: data.latitude,
+				// 		lng: data.longitude
+				// 	});
+				// 	if ( this.positions.length >= 50 )
+				// 	{
+				// 		this.positions = [];
+				// 		const distance = this.getDistanceFromLatLonInKm( this.currentPosition.coords.latitude, this.currentPosition.coords.longitude, data.latitude, data.longitude );
+				// 		if ( distance >= 0.008 )
+				// 		{
+				// 			let locationData = {
+				// 				latlng : data.latitude + ',' + data.longitude
+				// 			};
+				// 			Api.get( '/locations', locationData )
+				// 				.then( ({ result }) =>
+				// 				{
+				// 					this.dispatch( this.actionTypes.CURRENT_ADDRESS_FETCHED, result );
+				// 				})
+				// 		}
+				// 	}
+				// }
 				this.currentPosition = {
 					coords: {
 						latitude: data.latitude,
@@ -223,11 +221,15 @@ class BGLocation extends BaseService
 	 */
 	setConfig( hasActiveOrder = false )
 	{
-		BgGeo.setConfig(
+		if (hasActiveOrder != this.currentConfig)
 		{
-			bgGeoInterval: hasActiveOrder ? G.bgLocateIntervalWithOrder : G.bgLocateInterval,
-			backgroundMode: hasActiveOrder,
-		});
+			this.currentConfig = hasActiveOrder;
+			BgGeo.setConfig(
+			{
+				bgGeoInterval: hasActiveOrder ? G.bgLocateIntervalWithOrder : G.bgLocateInterval,
+				backgroundMode: hasActiveOrder,
+			});
+		}
 		// BackgroundGeolocation.setConfig(
 		// {
 		// 	foregroundService: hasActiveOrder,
