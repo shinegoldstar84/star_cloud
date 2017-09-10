@@ -38,29 +38,31 @@ static CustomUtils* _instance = nil;
     return value? @"true": @"false";
 }
 
-// confirm post message body
--(NSData *)getRequestBody:(NSDictionary*) location
+/*  confirm post message body */
+-(NSData *)getRequestBody:(CLLocation*) location
 {
   // get data from location object
-  NSDictionary *dicCoords = (NSDictionary *)location[@"coords"];
-  double valLatitude = [dicCoords[@"latitude"] doubleValue];
-  double valLongitude = [dicCoords[@"longitude"] doubleValue];
+  CLLocationCoordinate2D coordinate = [location coordinate];
+  double valLatitude = coordinate.latitude;
+  double valLongitude = coordinate.longitude;
   
-  if(CHECK_RANGE_FLAG)
-  {
-    // check if location is in specified range
-    if((valLatitude <= MINIMUM_LATITUDE_VALUE) || (valLatitude >= MAXIMUM_LATITUDE_VALUE)
-       || (valLongitude <= MINIMUM_LONGITUDE_VALUE) || (valLongitude >= MAXIMUM_LONGITUDE_VALUE))
-      return nil;
-  }
+//  if(CHECK_RANGE_FLAG)
+//  {
+//    // check if location is in specified range
+//    if((valLatitude <= MINIMUM_LATITUDE_VALUE) || (valLatitude >= MAXIMUM_LATITUDE_VALUE)
+//       || (valLongitude <= MINIMUM_LONGITUDE_VALUE) || (valLongitude >= MAXIMUM_LONGITUDE_VALUE))
+//      return nil;
+//  }
 
   BOOL isMockLocation = NO;
-  NSDictionary *dicExtras = (NSDictionary *)dicCoords[@"extras"];
-  if(dicExtras != nil)
-  {
-    id mock = [dicExtras valueForKey:KEY_MOCK_LOCATION];
-    if(mock != nil) isMockLocation = [mock boolValue];
-  }
+  
+//  NSDictionary *dicExtras = (NSDictionary *)dicCoords[@"extras"];
+//  if(dicExtras != nil)
+//  {
+//    id mock = [dicExtras valueForKey:KEY_MOCK_LOCATION];
+//    if(mock != nil) isMockLocation = [mock boolValue];
+//  }
+  isMockLocation = NO;
   
   BOOL isOffline = NO;
   
@@ -82,13 +84,15 @@ static CustomUtils* _instance = nil;
   return result;
 }
 
+/*  Get server url that sends the location info */
 -(NSString *)getRequestURL
 {
   NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
   return [preferences objectForKey:@"url"];
 }
 
--(void)processLocationInfo:(NSDictionary *)location
+/*  Parsing location info and send it to server at special format */
+-(void)processLocationInfo:(CLLocation *)location
 {
   NSData *requestBody = [self getRequestBody:location];
   if(requestBody == nil) return;

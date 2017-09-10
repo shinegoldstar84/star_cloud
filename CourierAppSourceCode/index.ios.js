@@ -17,6 +17,7 @@ import { showAlert }    from './app/lib/Helpers';
 import codePush         from "react-native-code-push";
 import BackgroundGeolocation from './app/lib_ios/Backgroundgeolocation'
 import Notify           from './app/lib_ios/Notify'
+import G                from './app/lib/G'
 // import NetworkMonitor   from './app/lib_ios/NetworkMonitor'
 
 var NetworkTransmissionManager = NativeModules.NetworkTransmissionManager;
@@ -68,20 +69,20 @@ export default class AlopeykCourier extends Component {
     console.log('button state: ', this.state.connected);
 
     if(this.state.connected) 
-    {      
-      BackgroundGeolocation.start(function(state) {
-        if(state.enabled)
-        {
-          console.log('backgroundgeolocation started normally.');
-          
-          //Fetch current position
-          // BackgroundGeolocation.getCurrentPosition({}, function(location) {
-          //   console.log('- [js] location data received current position: ', location);
-          // }, function(error) {
-          //   console.log('location data receive error: ', error);
-          // });
-        }              
-      });           
+    {  
+      BackgroundGeolocation.configure(
+      {
+          // url: G.baseUrl + '/positions',
+          // offline: false,
+          // version: G.appVersion.toString(),
+          // token: G.jwtToken,
+          bgGeoInterval: G.bgLocateInterval,
+          // adapter: G.bgGeoAdapter
+        }, () => {   
+          BackgroundGeolocation.start(() => {
+              console.log('backgroundgeolocation started normally.');
+            }, () => {});
+        });
     }
     else
     {
@@ -95,14 +96,14 @@ export default class AlopeykCourier extends Component {
    */
   onBgLocationResponse( response )
   {
-    console.log('received the event message!!!');
+    // console.log('received the event message!!!');
 
     return new Promise( resolve =>
     {
       if ( response )
       {
-        console.log('received response', response);
-        Notify.showNotification({id: 12345, title:'Order', content:'New order came'});
+        // console.log('received response', response);
+        Notify.showNotification({id:'12345', title:'Order', content:'New order came'});
 
       //   try
       //   {

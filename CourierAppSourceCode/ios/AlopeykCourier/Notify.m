@@ -24,17 +24,22 @@ RCT_EXPORT_MODULE();
   return @[];
 }
 
+/**
+ *  Show notification
+ */
 RCT_EXPORT_METHOD(showNotification:(NSDictionary *)map)
 {
-  NSLog(@"display notification");
-//  if([[UIApplication sharedApplication] applicationState] == UIApplicationStateBackground)
-//  {
     UILocalNotification* notification = [[UILocalNotification alloc] init];
 //    [notification setUserInfo:@{@"UUID":[map objectForKey:@"id"]}];
     notification.soundName = UILocalNotificationDefaultSoundName;
-    notification.applicationIconBadgeNumber = 1;
-    notification.alertTitle = @"test";//[map objectForKey:@"title"];
-    notification.alertBody = @"response received";//[map objectForKey:@"content"];
+    notification.applicationIconBadgeNumber = notification.applicationIconBadgeNumber + 1;
+    notification.alertTitle = [map objectForKey:@"title"];
+  
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    [df setDateFormat:@"HH:mm:ss"];
+    NSString* strTime = [df stringFromDate:[NSDate new]];
+  
+    notification.alertBody = [NSString stringWithFormat:@"%@ at %@", [map objectForKey:@"content"], strTime];
     [[UIApplication sharedApplication] presentLocalNotificationNow:notification];
 //  }
 }

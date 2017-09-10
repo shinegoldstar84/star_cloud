@@ -9,10 +9,12 @@
 #ifndef CustomUtils_h
 #define CustomUtils_h
 
+#import <CoreLocation/CoreLocation.h>
+
 @interface CustomUtils : NSObject
 
 // send location info to server and recieve response from server
--(void)processLocationInfo:(NSDictionary *)location;
+-(void)processLocationInfo:(CLLocation *)location;
 
 // singleton method
 +(CustomUtils *)sharedInstance;

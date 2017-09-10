@@ -15,10 +15,14 @@
 #import <React/RCTEventDispatcher.h>
 #endif
 
-static NSString *BackgroundSessionConfigurationID = @"SimpleBackgroundSessionConfiguration";
+static NSString *const BackgroundSessionConfigurationID = @"SimpleBackgroundSessionConfiguration";
 
-static const NSString* POSITION_HTTP_RESPONSE = @"positionHttpResponse";
-static const NSString* POSITION_HTTP_REQUEST_FAIL = @"positionHttpRequestFail";
+static NSString *const POSITION_HTTP_RESPONSE = @"positionHttpResponse";
+static NSString *const POSITION_HTTP_REQUEST_FAIL = @"positionHttpRequestFail";
+
+static NSString *const KEY_TOKEN = @"token";
+static NSString *const KEY_BEARER = @"Bearer";
+static NSString *const KEY_HTTP_HEADER_FIELD = @"Authorization";
 
 static NetworkTransmissionManager* _instance = nil;
 
@@ -76,33 +80,31 @@ RCT_EXPORT_METHOD(start:(NSString*)url body:(NSData*) body)
   [request setHTTPMethod:@"POST"];
   
   NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
-  NSString *strToken = [preferences objectForKey:@"token"];
-  NSString* strAuth = [NSString stringWithFormat:@"%@ %@", @"Bearer", strToken];
-  [request addValue:strAuth forHTTPHeaderField:@"Authorization"];
+  NSString *strToken = [preferences objectForKey:KEY_TOKEN];
+  NSString* strAuth = [NSString stringWithFormat:@"%@ %@", KEY_BEARER, strToken];
+  [request addValue:strAuth forHTTPHeaderField:KEY_HTTP_HEADER_FIELD];
   
   [request setHTTPBody:body];
   
-  // comment for local test
-  /*NSURLSessionDataTask *task = [session dataTaskWithRequest:request
-                                    completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
-  {
-    if (error) {
-      [self sendEvent:(NSString *)POSITION_HTTP_REQUEST_FAIL body:nil];
-      return;
-    }
-    
-    // Parse response/data and determine whether new content was available
-    NSDictionary *dicResponse = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:_responseData options:0 error:nil];
-    [self sendEvent:(NSString *)POSITION_HTTP_RESPONSE body:dicResponse];
-    NSLog(@"server response received!");
-  }];
+//  // comment for local test
+//  NSURLSessionDataTask *task = [session dataTaskWithRequest:request
+//                                    completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
+//  {
+//    if (error) {
+//      [self sendEventWithName:POSITION_HTTP_REQUEST_FAIL body:nil];
+//      return;
+//    }
+//    
+//    // Parse response/data and determine whether new content was available
+//    NSDictionary *dicResponse = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:_responseData options:0 error:nil];
+//    [self sendEventWithName:POSITION_HTTP_RESPONSE body:dicResponse];
+//    NSLog(@"server response received!");
+//  }];
+//  
+//  // Start the task
+//  [task resume];
   
-  // Start the task
-  [task resume];*/  
-  
-  [self sendEventWithName:(NSString *)POSITION_HTTP_RESPONSE body:@{@"orderid":[NSNumber numberWithInteger:12345]}];
-
-  NSLog(@"send location info finished!");
+  [self sendEventWithName:POSITION_HTTP_RESPONSE body:@{@"orderid":[NSNumber numberWithInteger:12345]}]; // only for test code
 }
 
 - (NSURLSession *)backgroundSession

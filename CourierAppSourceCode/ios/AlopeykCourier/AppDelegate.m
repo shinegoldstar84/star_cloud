@@ -41,7 +41,17 @@
                                                    launchOptions:launchOptions];
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
   
-  [application setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
+//  [application setMinimumBackgroundFetchInterval:UIApplicationBackgroundFetchIntervalMinimum];
+  
+  // register notification setting
+  UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
+                                                  UIUserNotificationTypeBadge |
+                                                  UIUserNotificationTypeSound);
+  UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
+                                                                           categories:nil];
+  
+  [application registerUserNotificationSettings:settings];
+  
   
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
@@ -78,6 +88,5 @@
 {
   
 }
-
 
 @end

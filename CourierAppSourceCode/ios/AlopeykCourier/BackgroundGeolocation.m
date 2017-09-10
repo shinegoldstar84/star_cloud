@@ -15,21 +15,11 @@
 #import <React/RCTEventDispatcher.h>
 #endif
 
-static NSString *const TS_LOCATION_MANAGER_TAG = @"TSLocationManager";
-static NSString *const EVENT_LOCATIONCHANGE     = @"location";
-static NSString *const EVENT_ERROR              = @"error";
-
 static NSString *const KEY_GEO_TIMER_INTERVAL = @"bgGeoInterval";
-
-static BackgroundGeolocation *_instance = nil;
 
 @implementation BackgroundGeolocation {
   BOOL isConfigured;
   
-  NSMutableDictionary *listeners;
-  
-  void(^onLocation)(TSLocation*);
-  void(^onLocationError)(NSError*);
   void(^onTimer)(NSTimer *);
   
   BOOL isMonitoring;
@@ -42,309 +32,169 @@ static BackgroundGeolocation *_instance = nil;
 
 RCT_EXPORT_MODULE();
 
-+(BackgroundGeolocation *)sharedInstance
-{
-  if(_instance == nil)
-  {
-    _instance = [[BackgroundGeolocation alloc] init];
-  }
-  
-  return _instance;
-}
-
 -(instancetype)init {
   if(self = [super init]) {
-    isConfigured = NO;
+//    isConfigured = NO;
     timer = nil;
     isMonitoring = NO;
-        
+    
     __typeof(self) __weak me = self;
     
-    // Build event-listener blocks
-    onLocation = ^void(TSLocation *location) {
-//      [me sendEvent:EVENT_LOCATIONCHANGE body:[location toDictionary]];
-//      NSLog(@"Location changed:");
-//      
-//      [me postPosition:location];
-    };
+    // create & init location manager object
+    locationManager = [[CLLocationManager alloc] init];
+    [locationManager setAllowsBackgroundLocationUpdates:YES];
+    [locationManager setDelegate:me];
+    [locationManager setDistanceFilter:kCLHeadingFilterNone];
+    [locationManager setPausesLocationUpdatesAutomatically:NO];
+    [locationManager setDesiredAccuracy:kCLLocationAccuracyBest];
+    [locationManager requestAlwaysAuthorization];
     
-    onLocationError = ^void(NSError *error) {
-      [me sendEvent:EVENT_ERROR body: @{@"type":@"location", @"code":@(error.code)}];
-    };
-    
+    // define timer
     onTimer = ^void(NSTimer *timer) {
       [me getCurrentPosition];
     };
-    
-    // EventEmitter listener-counts
-    listeners = [NSMutableDictionary new];
-    
-    // TSLocationManager instance
-    locationManager = [TSLocationManager sharedInstance];
-    
-    // for test only code
-    [self locationManagerDefaultSetting];
-    isConfigured = YES;
-    
-    // Provide reference to rootViewController for #emailLog method.
-    UIViewController *root = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
-    locationManager.viewController = root;
   }
   
   return self;
 }
 
+/*  Implementation of RCTBridgeModule */
 - (NSArray<NSString *> *)supportedEvents {
-  return @[
-           EVENT_LOCATIONCHANGE,
-           EVENT_ERROR
-           ];
+  return @[];
 }
 
-/*  hard setting for default setting of location manager */
--(void)locationManagerDefaultSetting
-{
-  NSMutableDictionary* dicSetting = [NSMutableDictionary new];
-  [dicSetting setObject:@0 forKey:@"desiredAccuracy"];
-  [dicSetting setObject:@50 forKey:@"stationaryRadius"];
-  [dicSetting setObject:@50 forKey:@"distanceFilter"];
-  [dicSetting setObject:@YES forKey:@"disableElasticity"];
-  [dicSetting setObject:@3000 forKey:@"locationUpdateInterval"];
-  [dicSetting setObject:@80 forKey:@"minimumActivityRecognitionConfidence"];
-  [dicSetting setObject:@5000 forKey:@"fastestLocationUpdateInterval"];
-  [dicSetting setObject:@1000 forKey:@"activityRecognitionInterval"];
-  [dicSetting setObject:@0 forKey:@"stopTimeout"];
-  [dicSetting setObject:@"AutomotiveNavigation" forKey:@"activityType"];
-  [dicSetting setObject:@YES forKey:@"debug"];
-  [dicSetting setObject:@NO forKey:@"forceReloadOnLocationChange"];
-  [dicSetting setObject:@NO forKey:@"forceReloadOnMotionChange"];
-  [dicSetting setObject:@NO forKey:@"forceReloadOnGeofence"];
-  [dicSetting setObject:@NO forKey:@"stopOnTerminate"];
-  [dicSetting setObject:@YES forKey:@"startOnBoot"];
-  
-  [locationManager configure:dicSetting];
-}
-
-/**
- * configure plugin for interact with previous JS code
+/*  
+ *  Request current position to location manager
  */
-RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
-{
-  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
-  
-  for(NSString* key in [config allKeys])
-  {
-    [preferences setObject:[config objectForKey:key] forKey:key];
-  }
-  
-  [preferences synchronize];
-  
-  success(@[@{@"enabled":@YES}]);
-  
-//  if (isConfigured) {
-//    [self setConfig:config success:success failure:failure];
-//    return;
-//  }
-//  
-//  dispatch_async(dispatch_get_main_queue(), ^{
-//    NSDictionary *state = [locationManager configure:config];
-//    isConfigured = (state != nil);
-//    if (state != nil) {
-//      success(@[state]);
-//    } else {
-//      failure(@[]);
-//    }
-//  });
+-(void)getCurrentPosition {
+  [locationManager requestLocation];
+  [self processCurrentPosition:[locationManager location]];
 }
 
-RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success)
+-(void)processCurrentPosition:(CLLocation *)newLocation
 {
-  [self configure:config success:success failure:nil];
-//  isConfigured = YES;
+  NSDateFormatter *df = [[NSDateFormatter alloc] init];
+  [df setDateFormat:@"HH:mm:ss"];
+  NSString* strTime = [df stringFromDate:newLocation.timestamp];
+  NSLog(@"processed position info: (%.2f, %2f) -> %@", newLocation.coordinate.latitude, newLocation.coordinate.longitude, strTime);
+
+  [[CustomUtils sharedInstance] processLocationInfo:newLocation];
 }
 
-//RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
-//{
-//  NSDictionary *state = [locationManager setConfig:config];
-//  success(@[state]);
-//}
-
-// configuration setting change process
-RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config)
+/*  
+ *  Processing after get a new location info  
+ */
+- (void)locationManager:(CLLocationManager *)manager
+    didUpdateToLocation:(CLLocation *)newLocation
+           fromLocation:(CLLocation *)oldLocation
 {
-  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
-  for(NSString* key in [config allKeys])
-  {
-    [preferences setObject:[config objectForKey:key] forKey:key];
-  }
-  [preferences synchronize];
+//  NSLog(@"didUpdateTo & From method!");
 }
 
-RCT_EXPORT_METHOD(addListener:(NSString*)event)
+- (void)locationManager:(CLLocationManager *)manager
+     didUpdateLocations:(NSArray<CLLocation *> *)locations
 {
-  // Careful:  we're overrideing a RCTEventEmitter method here.
-  [super addListener:event];
-  
-  @synchronized(listeners) {
-    if ([listeners objectForKey:event]) {
-      // Increment listener-count for this event
-      NSInteger count = [[listeners objectForKey:event] integerValue];
-      count++;
-      [listeners setObject:@(count) forKey:event];
-    } else {
-      // First listener for this event
-      [listeners setObject:@(1) forKey:event];
-      
-//      if ([event isEqualToString:EVENT_LOCATIONCHANGE]) {
-//          [locationManager onLocation:onLocation failure:onLocationError];
-//      }
-    }
-  }
+//  NSLog(@"new location captured from didUpdate method!");
+//  [self processCurrentPosition:[locations lastObject]];
 }
 
-RCT_EXPORT_METHOD(removeListener:(NSString*)event)
+- (void)locationManager:(CLLocationManager *)manager
+       didFailWithError:(NSError *)error
 {
-  @synchronized(listeners) {
-    if ([listeners objectForKey:event]) {
-      // Decrement listener-count for this event.
-      NSInteger count = [[listeners objectForKey:event] integerValue];
-      count--;
-      if (count > 0) {
-        [listeners setObject:@(count) forKey:event];
-      } else {
-        // No more listeners: tell TSLocationManager to removeListeners for this event.
-        [locationManager removeListeners];
-        [listeners removeObjectForKey:event];
-      }
-    }
-  }
+//  NSLog(@"location get failed!");
 }
 
-RCT_EXPORT_METHOD(removeAllListeners)
+- (void)locationManager:(CLLocationManager *)manager
+didFinishDeferredUpdatesWithError:(NSError *)error
 {
-  @synchronized(listeners) { [listeners removeAllObjects]; }
-  [locationManager removeListeners];
-}
-
--(NSDictionary*)getState
-{
-  return [locationManager getState];
-}
-
-RCT_EXPORT_METHOD(getState:(RCTResponseSenderBlock)callback failure:(RCTResponseSenderBlock)failure)
-{
-  NSDictionary *state = [locationManager getState];
-  callback(@[state]);
+//  NSLog(@"didFinishDeferredUpdatesWithError");
 }
 
 /**
  * Turn on background geolocation
  */
-RCT_EXPORT_METHOD(start:(RCTResponseSenderBlock)success) // failure:(RCTResponseSenderBlock)failure)
+RCT_EXPORT_METHOD(start:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
 {
-  if(!isConfigured || isMonitoring) return;
+  if(![CLLocationManager locationServicesEnabled])
+    failure(@[]);
   
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [locationManager start];
-    success(@[[locationManager getState]]);
-  });
+  do{
+    if(isMonitoring) break;
+    
+//    [locationManager startUpdatingLocation];
+    
+    // set default interval
+    int nTimerInterval = 3;
+    
+    // get configured value and convert into seconds value
+    id interval = [[NSUserDefaults standardUserDefaults] objectForKey:KEY_GEO_TIMER_INTERVAL];
+    if(interval != nil) nTimerInterval = (int)([interval integerValue] / 1000);
+    
+    // create timer object and insert into runloop to execute
+    timer = [NSTimer timerWithTimeInterval:nTimerInterval repeats:YES block:onTimer];
+    [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+    
+    isMonitoring = YES;
+  }while(NO);
   
-  [self addListener:EVENT_LOCATIONCHANGE];
-  
-  isMonitoring = YES;
-  
-  // set default interval
-  int nTimerInterval = 3;
-  
-  // get configured value and convert into seconds value
-  id interval = [[NSUserDefaults standardUserDefaults] objectForKey:KEY_GEO_TIMER_INTERVAL];
-  if(interval != nil) nTimerInterval = (int)([interval integerValue] / 1000);
-  
-  // create timer object and insert into runloop to execute
-  timer = [NSTimer timerWithTimeInterval:nTimerInterval repeats:YES block:onTimer];
-  [[NSRunLoop mainRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+  success(@[@{@"enabled":@YES}]);
 }
 
 /**
  * Turn it off
  */
-//RCT_EXPORT_METHOD(stop:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
-//{
-//  [locationManager stop];
-//  success(@[[locationManager getState]]);
-//}
 RCT_EXPORT_METHOD(stop)
 {
-  [locationManager stop];
+  if(!isMonitoring) return;
+  
   isMonitoring = NO;
   
+//  [locationManager stopUpdatingLocation];
+
   [timer invalidate];
   timer = nil;
 }
 
-RCT_EXPORT_METHOD(getCurrentPosition:(NSDictionary*)options success:(RCTResponseSenderBlock)success failure:(RCTResponseSenderBlock)failure)
-{
-  [locationManager getCurrentPosition:options success:^(TSLocation* location) {
-    success(@[[location toDictionary]]);
-  } failure:^(NSError* error) {
-    failure(@[@(error.code)]);
-  }];
+/**
+ *  Restart service
+ */
+-(void)restart {
+  [self stop];
+  [self start:^(NSArray *response) {} failure:^(NSArray *response) {}];
 }
 
-RCT_EXPORT_METHOD(playSound:(int)soundId)
+/*  
+ *  Change previous configuration setting
+ */
+RCT_EXPORT_METHOD(setConfig:(NSDictionary*)config)
 {
-  [locationManager playSound: soundId];
+  // save configuration value to preference
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
+  for(NSString* key in [config allKeys])
+  {
+    [preferences setObject:[config objectForKey:key] forKey:key];
+  }
+  [preferences synchronize];
+  
+  // force restart
+  [self restart];
 }
 
-//RCT_EXPORT_METHOD(on:(NSString *)event success:(RCTResponseSenderBlock)success)
-//{
-//  [[BackgroundGeolocation sharedInstance] addListener:event];
-//  
-//  if ([event isEqualToString:EVENT_LOCATIONCHANGE]) {
-//    [locationManager onLocation:^(TSLocation* location) {
-//      success(@[[location toDictionary]]);
-//    } failure:onLocationError];
-//  }
-//}
-//
-//RCT_EXPORT_METHOD(un:(NSString *)event)
-//{
-//  [self removeListener:event];
-//}
-
--(void)getCurrentPosition
+/**
+ * Configure service with specified parameters
+ */
+RCT_EXPORT_METHOD(configure:(NSDictionary*)config success:(RCTResponseSenderBlock)success)
 {
-  [locationManager getCurrentPosition:nil success:^(TSLocation* location) {
-    [self postPosition:location];
-  }  failure:^(NSError* error) {
-    NSLog(@"get position error: %@", @[@(error.code)]);
-  }];
-}
+  NSUserDefaults *preferences = [NSUserDefaults standardUserDefaults];
 
--(void) postPosition:(TSLocation *)location
-{
-  NSDictionary* dicLocation = [location toDictionary];
-  [[CustomUtils sharedInstance] processLocationInfo:dicLocation];
-//  NSLog(@"processed position info: %@", [dicLocation descriptionInStringsFileFormat]);
-}
+  for(NSString* key in [config allKeys])
+  {
+    [preferences setObject:[config objectForKey:key] forKey:key];
+  }
 
--(void) sendEvent:(NSString*)event body:(id)body
-{
-  [self sendEventWithName:event body:body];
-}
+  [preferences synchronize];
 
-- (void)invalidate
-{
-  [self removeAllListeners];
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [locationManager stopWatchPosition];
-  });
-}
-
-- (void)dealloc
-{
-  [self removeAllListeners];
-  locationManager = nil;
+  success(@[@{@"enabled":@YES}]);
 }
 
 @end
